@@ -11,6 +11,10 @@ PROYECTO TEORIA ELECTROMAGNETICA
 
 PARA MEJORES RESULTADOS CORRER EN LA TERMINAL O IDLE PERO NO SPYDER
 
+algoritmo para calcular la divergencia fue sacado de aca
+https://www.manongdao.com/article-250819.html
+
+
 """
 
 import numpy as np
@@ -70,6 +74,9 @@ def V(x,y,n):
 
 #x,y = np.meshgrid(x,y)
 
+def divergence(f):
+    num_dims = len(f)
+    return np.ufunc.reduce(np.add, [np.gradient(f[i], axis=i) for i in range(num_dims)])
 
 def graficarV(k, b):
     v = V(x,y,n[k])
@@ -144,4 +151,24 @@ def menu():
         ax.set_xlabel('X')
         Q = ax.quiver(X,Y, ex, ey, linewidth = 0.01)
         plt.show()
+    else:
+        dx = 0.01
+        x = np.arange(0,a,dx)
+        y = np.linspace(0,b,len(x))
+        dy = b/len(x)
+        z = np.arange(0,2,dx)
+        X,Y =np.meshgrid(x,y)
+        v = graficarV(3,False)
+        ex, ey = np.gradient(v, dx, dy)
+        densidad = divergence([ex,ey])
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        surf = ax.plot_surface(X,Y,densidad, cmap=cm.coolwarm,
+                               linewidth=0, antialiased=False)
+        ax.set_ylabel('Y')
+        ax.set_xlabel('X')
+        ax.set_title('Densidad de superficie')
+        fig.colorbar(surf, shrink=0.5, aspect=5)
+        plt.show()
+        
 menu()
