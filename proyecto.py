@@ -9,65 +9,35 @@ Created on Mon Jun  1 15:21:27 2020
 
 PROYECTO TEORIA ELECTROMAGNETICA
 
+PARA MEJORES RESULTADOS CORRER EN LA TERMINAL O IDLE PERO NO SPYDER
 
 """
 
 import numpy as np
 
-
+from mpl_toolkits.mplot3d import Axes3D 
 import matplotlib.pyplot as plt
 
 from matplotlib import cm
 
-
-color = cm.gray
-
-"""
-from matplotlib import cm
-from colorspacious import cspace_converter
-from collections import OrderedDict
-from mpl_toolkits.mplot3d import axes3d
-
-
 fig = plt.figure()
-ax = fig.gca(projection='3d')
 
-# Make the grid
-x, y, z = np.meshgrid(np.arange(-0.8, 1, 0.2),
-                      np.arange(-0.8, 1, 0.2),
-                      np.arange(-0.8, 1, 0.8))
+bw = cm.gray
+warm = cm.coolwarm
 
-# Make the direction data for the arrows
-u = np.sin(np.pi * x) * np.cos(np.pi * y) * np.cos(np.pi * z)
-v = -np.cos(np.pi * x) * np.sin(np.pi * y) * np.cos(np.pi * z)
-w = (np.sqrt(2.0 / 3.0) * np.cos(np.pi * x) * np.cos(np.pi * y) *
-     np.sin(np.pi * z))
 
-ax.quiver(x, y, z, u, v, w, length=0.1, normalize=True)
-
-plt.ion()
-
-plt.show()
-
+"""La pregunta 3.1 
 """
-
-
-"""La pregunta 3.1 """
 
 sin = np.sin
 pi = np.pi
 arctan = np.arctan
 sinh = np.sinh
+sh = np.shape
 
 a = 3
 
 b = a*1.5
-
-dx = 0.01
-
-x = np.arange(0,a,dx)
-
-y = np.linspace(0,b,len(x))
 
 def cn(n):
     f = []
@@ -84,8 +54,10 @@ n = [3,6,11,21]
 
 def V(x,y,n):
     v = np.zeros((len(x),len(x)))
+    const = []
     for k in range(1,n):
         c = cn(k)
+        const.append(c)
         r = 0
         s = 0
         for i in x:
@@ -96,40 +68,80 @@ def V(x,y,n):
             s = 0
     return v
 
-v = V(x,y,n[0])
-
 #x,y = np.meshgrid(x,y)
 
-plt.figure(0)
-plt.title('Potencial, con n = '+str(n[0]-1))
-plt.xlabel('X')
-plt.ylabel('Y')
-plt.pcolormesh(x,y,v,cmap = color)
-plt.show()
 
-v = V(x,y,n[1])
+def graficarV(k, b):
+    v = V(x,y,n[k])
+    if b:
+        plt.figure(k)
+        plt.title('Potencial, con n = '+str(n[k]-1))
+        plt.xlabel('X')
+        plt.ylabel('Y') 
+        plt.pcolormesh(x,y,v,cmap = bw)
+        plt.show()
+        fig = plt.figure(10-k)
+        ax = fig.gca(projection='3d')
+        surf = ax.plot_surface(X,Y,v, cmap=cm.coolwarm,
+                               linewidth=0, antialiased=False)
+        ax.set_ylabel('Y')
+        ax.set_xlabel('X')
+        ax.set_title('Potencial, con n='+str(n[k]-1))
+        fig.colorbar(surf, shrink=0.5, aspect=5)
+        plt.show()
+    return v
 
-plt.figure(1)
-plt.title('Potencial, con n = '+str(n[1]-1))
-plt.xlabel('X')
-plt.ylabel('Y')
-plt.pcolormesh(x,y,v,cmap = color)
-plt.show()
-
-v = V(x,y,n[2])
-
-plt.figure(2)
-plt.title('Potencial, con n = '+str(n[2]-1))
-plt.xlabel('X')
-plt.ylabel('Y')
-plt.pcolormesh(x,y,v,cmap = color)
-plt.show()
-
-v = V(x,y,n[3])
-
-plt.figure(3)
-plt.title('Potencial, con n = '+str(n[3]-1))
-plt.xlabel('X')
-plt.ylabel('Y')
-plt.pcolormesh(x,y,v,cmap = color)
-plt.show()
+def menu():
+    global x
+    global y
+    global z
+    global dy
+    global dx
+    global X
+    global Y
+    print('quiere graficar: \n'
+          '1. el campo electrico\n'
+          '2. el potencial\n'
+          '3. la carga superficial\n'
+          'ingrese el numero de la opcion que desea por favor')
+    ans = input('')
+    if '2' in ans:
+        dx = 0.01
+        x = np.arange(0,a,dx)
+        y = np.linspace(0,b,len(x))
+        dy = b/len(x)
+        X,Y =np.meshgrid(x,y)
+        for k in range(len(n)):
+            v = graficarV(k,True)
+    elif '1' in ans:
+        z = np.linspace(0,1,3)
+        dx = 0.3
+        x = np.arange(0,a,dx)
+        y = np.linspace(0,b,len(x))
+        dy = b/len(x)
+        v = graficarV(3,False)
+        v = np.expand_dims(v, axis = 2)
+        v = np.repeat(v, 3, axis = 2)
+        X,Y,Z =np.meshgrid(x,y,z)
+        ex, ey, ez = np.gradient(v, dx, dy, 0.333)
+        fig = plt.figure()
+        ax = fig.gca(projection='3d')
+        ax.set_title('Campo eléctrico')
+        ax.set_ylabel('Y')
+        ax.set_xlabel('X')
+        ax.quiver(X,Y,Z, ex, ey, ez, length=0.25, normalize = True)
+        plt.show()
+        dx = 0.3
+        x = np.arange(0,a,dx)
+        y = np.linspace(0,b,len(x))
+        dy = b/len(x)
+        v = graficarV(3,False)
+        X,Y =np.meshgrid(x,y)
+        ex, ey = np.gradient(v, dx, dy)
+        fig, ax = plt.subplots()
+        ax.set_title('Campo eléctrico')
+        ax.set_ylabel('Y')
+        ax.set_xlabel('X')
+        Q = ax.quiver(X,Y, ex, ey, linewidth = 0.01)
+        plt.show()
+menu()
