@@ -30,81 +30,26 @@ warm = cm.coolwarm
 """
 
 pi = np.pi
-dr = 0.5
+dr = 0.1
 cos = np.cos
 sh = np.shape
+r = np.arange(1,1000,dr)
 
-R = 3
-b = 3*R
+e0 = 10
 
-r = np.arange(0,b,dr)
-dt = pi/len(r)
-Ri = len(r[:int(len(r)/3)])
-
-r1 = np.arange(b,b*1.5,dr)
-r = np.concatenate((r,r1))
-
-t = np.linspace(0,pi,len(r))
-X,Y = np.meshgrid(r,t)
-
-a0 = -b/3
-a1 = R*b/(3)
-a2 = 4/(b*15)
-a3 = -a2*R**5
+phi = np.linspace(0,pi,len(r))
     
-def p3(x):
-    y = 1/2*(3*cos(x)**2-cos(x))
-    return y
+R, P = np.meshgrid(r,phi)
 
-def V(r,t,Ri):
-    v = np.zeros((len(r),len(t)))
-    k = Ri
-    p = 0 
-    for rad in r[Ri:Ri*3]:
-        p = 0
-        for th in t:
-            v[p][k] = a0 + a1/(3*rad) + (a2*rad**2+a3/rad**3)*p3(th)
-            p += 1
-        k+=1
-    for rad in r[Ri*3:]:
-        p =0 
-        for th in t:
-            v[p][k] = a0 + a1/(3*rad) + (a2*rad**2+a3/rad**3)*p3(th)
-            p += 1
-        k+=1
-    return v
+v = -e0*R*(1-1/(R**2))*cos(P)
 
-#x,y = np.meshgrid(x,y)
+ax = fig.gca(projection='3d')
+surf = ax.plot_surface(R,P, v, cmap=cm.coolwarm,
+                       linewidth=0)
+ax.set_ylabel(r'$\phi$ (radianes)')
+ax.set_xlabel('R (m)')
+ax.set_title('Potencial (V)')
+fig.colorbar(surf, shrink=0.5, aspect=5)
+plt.show()
 
 
-def graficarV(Ri):
-    v = V(r,t, Ri)
-    ax = fig.gca(projection='3d')
-    surf = ax.plot_surface(X,Y,v, cmap=cm.coolwarm,
-                           linewidth=0, antialiased=False)
-    ax.set_ylabel(r'$\theta$ (radianes)')
-    ax.set_xlabel('R (m)')
-    ax.set_title('Potencial (V)')
-    fig.colorbar(surf, shrink=0.5, aspect=5)
-    plt.show()
-
-def menu():
-    print('quiere graficar: \n'
-          '1. el campo electrico\n'
-          '2. el potencial\n'
-          'ingrese el numero de la opcion que desea por favor')
-    ans = input('')
-    if '2' in ans:
-        v = graficarV(Ri)
-    elif '1' in ans:
-        theta = np.linspace(0,1,3)
-        v = V(r,t, Ri)
-        ex, ey = np.gradient(v, dr, dt)
-        fig, ax = plt.subplots()
-        ax.set_title('Campo eléctrico (V/m)')
-        ax.set_ylabel(r'$\theta$ (radianes)')
-        ax.set_xlabel('R (m)')
-        Q = ax.quiver(X,Y, ex, ey, linewidth = 0.15)
-        plt.show()
-        
-menu()

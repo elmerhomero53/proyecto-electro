@@ -36,9 +36,6 @@ warm = cm.coolwarm
 sin = np.sin
 pi = np.pi
 
-def h(y):
-    return 2*y**3+5
-
 cosh = np.cosh
 sh = np.shape
 
@@ -51,31 +48,34 @@ x = np.arange(0,a,dx)
 y = np.linspace(0,b,len(x))
 dy = b/len(y)
 
-X,Y = np.meshgrid(x,y)
-
 def cn(n,m):
+    X, Y =np.meshgrid(x,y)
     s = sin(m*pi/a*X)
     r = sin(n*pi/b*Y)
-    t = np.exp(n*pi*a/b)
-    I = np.trapz(f)
-    I = I*2/b
-    I = I/t
+    f = X*Y**2
+    I = np.trapz(f*r*s, dx=dx, axis=0)
+    I = np.trapz(I, dx= dy)
+    I = I*4/(a*b)
     return I
 
 n = [3,6,11,21]
 
+def zeta(z,n,m):
+    return np.exp(-z*np.sqrt((m*pi/a)**2+(n*pi/b)**2))
+
 def V(x,y,n):
     v = np.zeros((len(x),len(x)))
     for k in range(1,n):
-        c = cn(k)
-        r = 0
-        s = 0
-        for i in x:
-            for j in y:
-                v[s][r] += c*sin(k*pi*j/b)*np.exp(-k*pi*a/b)
-                s += 1
-            r += 1
+        for q in range(1,5):
+            c = cn(k,q)
+            r = 0
             s = 0
+            for i in x:
+                for j in y:
+                    v[s][r] += c*sin(k*pi*j/b)*zeta(i,k,q)
+                    s += 1
+                r += 1
+                s = 0
     return v
 
 #x,y = np.meshgrid(x,y)
@@ -84,22 +84,22 @@ def divergence(f):
     num_dims = len(f)
     return np.ufunc.reduce(np.add, [np.gradient(f[i], axis=i) for i in range(num_dims)])
 
-def graficarV(k, b):
+def graficarV(k,b):
     v = V(x,y,n[k])
     if b:
         plt.figure(k)
-        plt.title('Potencial, con n = '+str(n[k]-1))
-        plt.xlabel('X')
-        plt.ylabel('Y') 
+        plt.title('Potencial (V), con n = '+str(n[k]-1))
+        plt.xlabel('X (m)')
+        plt.ylabel('Z (m)') 
         plt.pcolormesh(x,y,v,cmap = bw)
         plt.show()
         fig = plt.figure(10-k)
         ax = fig.gca(projection='3d')
         surf = ax.plot_surface(X,Y,v, cmap=cm.coolwarm,
                                linewidth=0, antialiased=False)
-        ax.set_ylabel('Y')
-        ax.set_xlabel('X')
-        ax.set_title('Potencial, con n='+str(n[k]-1))
+        ax.set_ylabel('Z (m)')
+        ax.set_xlabel('X (m)')
+        ax.set_title('Potencial (V), con n='+str(n[k]-1))
         fig.colorbar(surf, shrink=0.5, aspect=5)
         plt.show()
     return v
@@ -119,8 +119,8 @@ def menu():
           'ingrese el numero de la opcion que desea por favor')
     ans = input('')
     if '2' in ans:
-        dx = 0.01
-        x = np.arange(-a,a,dx)
+        dx = 0.1
+        x = np.arange(0,a,dx)
         y = np.linspace(0,b,len(x))
         dy = b/len(x)
         X,Y =np.meshgrid(x,y)
@@ -128,7 +128,7 @@ def menu():
             v = graficarV(k,True)
     elif '1' in ans:
         z = np.linspace(0,1,3)
-        dx = 0.3
+        dx = 0.5
         x = np.arange(-a,a,dx)
         y = np.linspace(0,b,len(x))
         dy = b/len(x)
@@ -139,12 +139,12 @@ def menu():
         ex, ey, ez = np.gradient(v, dx, dy, 0.333)
         fig = plt.figure()
         ax = fig.gca(projection='3d')
-        ax.set_title('Campo eléctrico')
-        ax.set_ylabel('Y')
-        ax.set_xlabel('X')
+        ax.set_title('Campo eléctrico (V/m)')
+        ax.set_ylabel('Z (m)')
+        ax.set_xlabel('X (m)')
         ax.quiver(X,Y,Z, ex, ey, ez, length=0.25, normalize = True)
         plt.show()
-        dx = 0.3
+        dx = 0.5
         x = np.arange(-a,a,dx)
         y = np.linspace(0,b,len(x))
         dy = b/len(x)
@@ -152,14 +152,14 @@ def menu():
         X,Y =np.meshgrid(x,y)
         ex, ey = np.gradient(v, dx, dy)
         fig, ax = plt.subplots()
-        ax.set_title('Campo eléctrico')
-        ax.set_ylabel('Y')
-        ax.set_xlabel('X')
+        ax.set_title('Campo eléctrico (V/m)')
+        ax.set_ylabel('Z (m)')
+        ax.set_xlabel('X (m)')
         Q = ax.quiver(X,Y, ex, ey, linewidth = 0.01)
         plt.show()
     else:
-        dx = 0.01
-        x = np.arange(-a,a,dx)
+        dx = 0.05
+        x = np.arange(0,a,dx)
         y = np.linspace(0,b,len(x))
         dy = b/len(x)
         z = np.arange(0,2,dx)
@@ -171,9 +171,9 @@ def menu():
         ax = fig.gca(projection='3d')
         surf = ax.plot_surface(X,Y,densidad, cmap=cm.coolwarm,
                                linewidth=0, antialiased=False)
-        ax.set_ylabel('Y')
-        ax.set_xlabel('X')
-        ax.set_title('Densidad de superficie')
+        ax.set_ylabel('X (m)')
+        ax.set_xlabel('Z (m)')
+        ax.set_title(r'Densidad de superficie ($\frac{C}{m^2})$')
         fig.colorbar(surf, shrink=0.5, aspect=5)
         plt.show()
         
